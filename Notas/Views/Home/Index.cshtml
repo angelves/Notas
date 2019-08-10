@@ -1,0 +1,134 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+@model Notas.Models.IndexModel
+
+
+<form id="frm" asp-action="SaveNota" asp-controller="Home" method="post" asp-antiforgery="true">
+
+    <div id="main" class="mpan">
+
+        <div id="listcont" class="left_mpan">
+
+            <select id="lista" class="list" asp-for="NotasL" asp-items="Model.NotasL"></select>
+
+        </div>
+
+        <div class="right_mpan">
+            <div class="form_pan">
+
+                <div class="lab_cont">
+                    <div id="contid">
+                        <label id="labg">Id</label>
+                        <input id="id" asp-for="SelectedNota.Id" type="text" readonly />
+                    </div>
+                </div>
+
+                <div class="lab_cont">
+                    <div id="contid">
+                        <label id="labg">Important</label>
+                        <input id="important" asp-for="SelectedNota.Important" type="checkbox" />
+                    </div>
+                </div>
+
+                <div class="lab_cont">
+                    <div id="conttitle">
+                        <label id="labg">Title</label>
+                        <input id="title" asp-for="SelectedNota.Title" type="text" maxlength="50" />
+                    </div>
+                </div>
+
+                <div class="lab_cont">
+                    <div id="conttext">
+                        <label id="labg">Note</label>
+                        <textarea id="text" asp-for="SelectedNota.Text" type="text" maxlength="255"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="commands">
+
+        <div class="botot">
+
+            <button asp-action="AddNota" id="btnAdd" class="butcust">Add Note</button>
+            <button id="btnDel" class="butcust">Del Note</button>
+            <button class="butcust" type="submit" >Save Note</button>
+
+        </div>
+
+    </div>
+
+
+</form>
+
+@section scripts {
+
+    <script>
+
+        $(document).ready(function () { adaptList(); setSelect(); } );
+
+
+        function adaptList()
+        {
+
+            $("#main").height(window.innerHeight - 140);
+
+            $("#lista").height($("#listcont").height() - 20);
+        }
+
+        function setSelect()
+        {
+            $("#lista").val("@Html.Raw( Model.NotasL.Where(x => x.Selected).Single().Value.ToString() )");
+        }
+
+
+        $('#lista').on('change', '', function (e)
+        {
+            var id = $('#lista').val();
+
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("GetNota", "Home")',
+                data: { "Id": id },
+                success: function (data) {
+
+                    $("#id").val(JsonWorker(data, "Id"));
+                    $("#important").prop('checked', JsonWorker(data, "Important") == "true");
+                    $("#title").val(JsonWorker(data, "Title"));
+                    $("#text").text(JsonWorker(data, "Text"));
+
+                },
+                error: function () {
+
+                    alert("error");
+                }
+            });
+        });
+
+
+        $("#btnDel").click(function () {
+
+            if ($('#lista option').length == 1)
+            {
+                alert("Impossible set the database empty.");
+                return;
+            }
+
+            if (confirm("Delete Register?"))
+            {
+                $("#frm").attr("action", "@Url.Action("DelNota", "Home")");
+
+                $("#frm").submit();
+            }
+
+        });
+
+
+    </script>
+
+}
